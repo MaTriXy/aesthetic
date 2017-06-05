@@ -48,7 +48,7 @@ Add this to your module's `build.gradle` file:
 ```gradle
 dependencies {
     // ... other dependencies
-    compile 'com.afollestad:aesthetic:0.3.2'
+    compile 'com.afollestad:aesthetic:0.4.6'
 }
 ```
 
@@ -116,6 +116,7 @@ see the primary color on things such as `Toolbar`'s, and the accent color on wid
 ```java
 Aesthetic.get()
     .colorPrimaryRes(R.color.md_indigo)
+    .colorPrimaryDarkRes(R.color.md_indigo_dark)
     .colorAccentRes(R.color.md_yellow)
     .apply();
 ```
@@ -123,6 +124,9 @@ Aesthetic.get()
 You use `Aesthetic.get()` to retrieve the current attached `Aesthetic` instance, set theme properties, 
 and `apply()` theme. **This will trigger color changes in the visible Activity WITHOUT recreating it. 
 The set theme properties will also be persisted automatically.**
+
+The methods above end with `Res`, indicating they take a color resource. If you remove the `Res` suffix, 
+you can pass a literal color integer.
 
 ---
 
@@ -147,7 +151,7 @@ If you were to leave `take(1)` out, you need to manage the subscription. You wil
 updates every time the primary color is changed, until you unsubscribe.
 
 ```java
-Subscription subscription = 
+Disposable subscription = 
   Aesthetic.get()
       .colorPrimary()
       .subscribe(color -> {
@@ -155,7 +159,7 @@ Subscription subscription =
       });
       
 // Later, you should unsubscribe, e.g. when your Activity pauses
-subscription.unsubscribe();
+subscription.dispose();
 ```
 
 ---
@@ -180,7 +184,7 @@ Aesthetic.get()
     .apply();
 ```
 
-By default, Aesthetic will automatically use light status bar mode (on Android Marshmallow and above) 
+Aesthetic will automatically use light status bar mode (on Android Marshmallow and above) 
 if your status bar color is light. You can modify this behavior:
 
 ```java

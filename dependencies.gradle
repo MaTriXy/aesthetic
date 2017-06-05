@@ -2,14 +2,14 @@ ext.versions = [
         minSdk            : 16,
         compileSdk        : 25,
         buildTools        : '25.0.3',
-        publishVersion    : '0.3.2',
-        publishVersionCode: 11,
+        publishVersion    : '0.4.7',
+        publishVersionCode: 19,
         gradlePlugin      : '2.3.2',
 
         supportLib        : '25.3.1',
         mdProgressBar     : '1.4.1',
-        butterKnife       : '8.5.1',
-        rxJava            : '1.2.1',
-        rxAndroid         : '1.2.1',
-        rxPrefs           : '1.0.2'
+        butterKnife       : '8.6.0',
+        rxJava            : '2.1.0',
+        rxAndroid         : '2.0.1',
+        rxPrefs           : '2.0.0-RC2'
 ]

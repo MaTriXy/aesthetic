@@ -1,8 +1,9 @@
 package com.afollestad.aesthetic;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
-import android.widget.Switch;
 
 import io.reactivex.Observable;
 import io.reactivex.annotations.NonNull;
@@ -13,51 +14,45 @@ import static com.afollestad.aesthetic.Rx.onErrorLogAndRethrow;
 import static com.afollestad.aesthetic.Util.resolveResId;
 
 /** @author Aidan Follestad (afollestad) */
-public class AestheticSwitch extends Switch {
+public class AestheticCardView extends CardView {
 
-  private Disposable subscription;
+  private Disposable bgSubscription;
   private int backgroundResId;
 
-  public AestheticSwitch(Context context) {
+  public AestheticCardView(Context context) {
     super(context);
   }
 
-  public AestheticSwitch(Context context, AttributeSet attrs) {
+  public AestheticCardView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
     init(context, attrs);
   }
 
-  public AestheticSwitch(Context context, AttributeSet attrs, int defStyleAttr) {
+  public AestheticCardView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     init(context, attrs);
   }
 
   private void init(Context context, AttributeSet attrs) {
     if (attrs != null) {
-      backgroundResId = resolveResId(context, attrs, android.R.attr.background);
+      backgroundResId = resolveResId(context, attrs, R.attr.cardBackgroundColor);
     }
-  }
-
-  private void invalidateColors(ColorIsDarkState state) {
-    TintHelper.setTint(this, state.color(), state.isDark());
   }
 
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
+    Observable<Integer> obs =
+        ViewUtil.getObservableForResId(
+            getContext(), backgroundResId, Aesthetic.get().colorCardViewBackground());
     //noinspection ConstantConditions
-    subscription =
-        Observable.combineLatest(
-                ViewUtil.getObservableForResId(
-                    getContext(), backgroundResId, Aesthetic.get().colorAccent()),
-                Aesthetic.get().isDark(),
-                ColorIsDarkState.creator())
-            .compose(Rx.<ColorIsDarkState>distinctToMainThread())
+    bgSubscription =
+        obs.compose(Rx.<Integer>distinctToMainThread())
             .subscribe(
-                new Consumer<ColorIsDarkState>() {
+                new Consumer<Integer>() {
                   @Override
-                  public void accept(@NonNull ColorIsDarkState state) {
-                    invalidateColors(state);
+                  public void accept(@NonNull Integer bgColor) throws Exception {
+                    setCardBackgroundColor(bgColor);
                   }
                 },
                 onErrorLogAndRethrow());
@@ -65,7 +60,9 @@ public class AestheticSwitch extends Switch {
 
   @Override
   protected void onDetachedFromWindow() {
-    subscription.dispose();
+    if (bgSubscription != null) {
+      bgSubscription.dispose();
+    }
     super.onDetachedFromWindow();
   }
 }

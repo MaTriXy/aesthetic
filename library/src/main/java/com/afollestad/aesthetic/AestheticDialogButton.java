@@ -1,27 +1,25 @@
 package com.afollestad.aesthetic;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 
 import io.reactivex.disposables.Disposable;
 
-import static com.afollestad.aesthetic.Rx.onErrorLogAndRethrow;
-
 /** @author Aidan Follestad (afollestad) */
-final class AestheticSnackBarTextView extends AppCompatTextView {
+final class AestheticDialogButton extends AppCompatButton {
 
   private Disposable subscription;
 
-  public AestheticSnackBarTextView(Context context) {
+  public AestheticDialogButton(Context context) {
     super(context);
   }
 
-  public AestheticSnackBarTextView(Context context, AttributeSet attrs) {
+  public AestheticDialogButton(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
 
-  public AestheticSnackBarTextView(Context context, AttributeSet attrs, int defStyleAttr) {
+  public AestheticDialogButton(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
   }
 
@@ -30,9 +28,9 @@ final class AestheticSnackBarTextView extends AppCompatTextView {
     super.onAttachedToWindow();
     subscription =
         Aesthetic.get()
-            .snackbarTextColor()
+            .colorAccent()
             .compose(Rx.<Integer>distinctToMainThread())
-            .subscribe(ViewTextColorAction.create(this), onErrorLogAndRethrow());
+            .subscribe(ViewTextColorAction.create(this));
   }
 
   @Override

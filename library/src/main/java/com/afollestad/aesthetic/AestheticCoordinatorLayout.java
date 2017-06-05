@@ -21,19 +21,21 @@ import android.view.View;
 
 import java.lang.reflect.Field;
 
-import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func2;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
 
 import static com.afollestad.aesthetic.Rx.onErrorLogAndRethrow;
 
-/** @author Aidan Follestad (afollestad) */
+/**
+ * @author Aidan Follestad (afollestad)
+ */
 public class AestheticCoordinatorLayout extends CoordinatorLayout
     implements AppBarLayout.OnOffsetChangedListener {
 
-  private Subscription toolbarColorSubscription;
-  private Subscription statusBarColorSubscription;
+  private Disposable toolbarColorSubscription;
+  private Disposable statusBarColorSubscription;
   private AppBarLayout appBarLayout;
   private View colorView;
   private AestheticToolbar toolbar;
@@ -130,20 +132,21 @@ public class AestheticCoordinatorLayout extends CoordinatorLayout
       this.appBarLayout.addOnOffsetChangedListener(this);
       toolbarColorSubscription =
           Observable.combineLatest(
-                  toolbar.colorUpdated(),
-                  Aesthetic.get().colorIconTitle(toolbar.colorUpdated()),
-                  new Func2<Integer, ActiveInactiveColors, Pair<Integer, ActiveInactiveColors>>() {
-                    @Override
-                    public Pair<Integer, ActiveInactiveColors> call(
-                        Integer integer, ActiveInactiveColors activeInactiveColors) {
-                      return Pair.create(integer, activeInactiveColors);
-                    }
-                  })
+              toolbar.colorUpdated(),
+              Aesthetic.get().colorIconTitle(toolbar.colorUpdated()),
+              new BiFunction<
+                  Integer, ActiveInactiveColors, Pair<Integer, ActiveInactiveColors>>() {
+                @Override
+                public Pair<Integer, ActiveInactiveColors> apply(
+                    Integer integer, ActiveInactiveColors activeInactiveColors) {
+                  return Pair.create(integer, activeInactiveColors);
+                }
+              })
               .compose(Rx.<Pair<Integer, ActiveInactiveColors>>distinctToMainThread())
               .subscribe(
-                  new Action1<Pair<Integer, ActiveInactiveColors>>() {
+                  new Consumer<Pair<Integer, ActiveInactiveColors>>() {
                     @Override
-                    public void call(Pair<Integer, ActiveInactiveColors> result) {
+                    public void accept(@NonNull Pair<Integer, ActiveInactiveColors> result) {
                       toolbarColor = result.first;
                       iconTextColors = result.second;
                       invalidateColors();
@@ -158,9 +161,9 @@ public class AestheticCoordinatorLayout extends CoordinatorLayout
               .colorStatusBar()
               .compose(Rx.<Integer>distinctToMainThread())
               .subscribe(
-                  new Action1<Integer>() {
+                  new Consumer<Integer>() {
                     @Override
-                    public void call(Integer color) {
+                    public void accept(@io.reactivex.annotations.NonNull Integer color) {
                       collapsingToolbarLayout.setContentScrimColor(color);
                       collapsingToolbarLayout.setStatusBarScrimColor(color);
                     }
@@ -172,13 +175,15 @@ public class AestheticCoordinatorLayout extends CoordinatorLayout
   @Override
   public void onDetachedFromWindow() {
     if (toolbarColorSubscription != null) {
-      toolbarColorSubscription.unsubscribe();
+      toolbarColorSubscription.dispose();
     }
     if (statusBarColorSubscription != null) {
-      statusBarColorSubscription.unsubscribe();
+      statusBarColorSubscription.dispose();
     }
-    this.appBarLayout.removeOnOffsetChangedListener(this);
-    this.appBarLayout = null;
+    if (this.appBarLayout != null) {
+      this.appBarLayout.removeOnOffsetChangedListener(this);
+      this.appBarLayout = null;
+    }
     this.toolbar = null;
     this.colorView = null;
     super.onDetachedFromWindow();

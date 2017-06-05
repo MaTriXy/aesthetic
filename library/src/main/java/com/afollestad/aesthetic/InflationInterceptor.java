@@ -9,7 +9,6 @@ import android.support.v4.view.LayoutInflaterFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
-import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,7 +18,7 @@ import android.widget.LinearLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import rx.Observable;
+import io.reactivex.Observable;
 
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 import static com.afollestad.aesthetic.Util.resolveResId;
@@ -135,7 +134,11 @@ final class InflationInterceptor implements LayoutInflaterFactory {
         break;
       case "Button":
       case "android.support.v7.widget.AppCompatButton":
-        if (viewId == R.id.snackbar_action) {
+        if (viewId == android.R.id.button1
+            || viewId == android.R.id.button2
+            || viewId == android.R.id.button3) {
+          view = new AestheticDialogButton(context, attrs);
+        } else if (viewId == R.id.snackbar_action) {
           view = new AestheticSnackBarButton(context, attrs);
         } else {
           view = new AestheticButton(context, attrs);
@@ -198,6 +201,9 @@ final class InflationInterceptor implements LayoutInflaterFactory {
         view = new AestheticTextInputEditText(context, attrs);
         break;
 
+      case "android.support.v7.widget.CardView":
+        view = new AestheticCardView(context, attrs);
+        break;
       case "android.support.design.widget.TabLayout":
         view = new AestheticTabLayout(context, attrs);
         break;
@@ -288,16 +294,9 @@ final class InflationInterceptor implements LayoutInflaterFactory {
     }
 
     if (view != null) {
-      if (view instanceof CardView) {
-        viewBackgroundRes = resolveResId(context, attrs, R.attr.cardBackgroundColor);
-      }
       if (viewBackgroundRes != 0) {
-        Observable<Integer> fallback = null;
-        if (view instanceof CardView) {
-          fallback = Aesthetic.get().colorCardViewBackground();
-        }
         Observable<Integer> obs;
-        obs = ViewUtil.getObservableForResId(view.getContext(), viewBackgroundRes, fallback);
+        obs = ViewUtil.getObservableForResId(view.getContext(), viewBackgroundRes, null);
         if (obs != null) {
           Aesthetic.get().addBackgroundSubscriber(view, obs);
         }
